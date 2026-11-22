@@ -71,7 +71,7 @@ body{background:light-dark(#eef4f3,#0a1416)}
 .appbar{position:sticky;top:0;z-index:5;margin:0 -12px 12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--teal);color:var(--bg);display:flex;align-items:center;gap:10px}
 .appbar h1{font-size:19px;margin:0;color:inherit}.appbar .sub{margin:0;color:inherit;opacity:.8;font-size:13px}
 .appbar .logo{width:34px;height:34px;border-radius:10px;background:var(--bg);color:var(--teal);display:grid;place-items:center;font:600 16px Prompt;flex:none}
-.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(520px,100%);margin:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(520px,100%);margin:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
 .tabs button{border:0!important;border-radius:12px;background:none!important;color:var(--mut)!important;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px;padding:4px;font:600 12px Sarabun}
 .tabs button svg{width:24px;height:24px}
 .tabs button[aria-selected=true]{color:var(--teal)!important}
@@ -224,7 +224,6 @@ body{background:light-dark(#e9f5f0,#08120f)}
 <div class="tabs" role="tablist">
 <button role="tab" data-t="plan" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 011 1v1h2a1 1 0 011 1v13a1 1 0 01-1 1H6a1 1 0 01-1-1V7a1 1 0 011-1h2V5a1 1 0 011-1zM9 12h6M9 16h4"/></svg>วางแผน</button>
 <button role="tab" data-t="energy" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg>พลังงาน</button>
-<button role="tab" data-t="how" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.7-2.5 2-2.5 4M12 17h.01"/></svg>วิธีนับคาร์บ</button>
 <button role="tab" data-t="know" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0012 3z"/></svg>ความรู้</button>
 </div>
 
@@ -292,7 +291,11 @@ body{background:light-dark(#e9f5f0,#08120f)}
 <aside class="res" id="mealRes"></aside>
 </section>
 
-<section id="how" hidden>
+
+
+<section id="know" hidden>
+<div class="card hero2"><div class="h2e">💡</div><div><div class="h2t" style="font-size:34px">ความรู้</div><div class="h2s">โภชนาการน่ารู้ กดหัวข้อเพื่ออ่าน</div></div></div>
+<details class="kc"><summary><span class="ke">🧮</span><b>วิธีนับคาร์บ</b></summary><div class="kb2">
 <div class="card hero2"><div class="h2e">🍚</div><div><div class="h2t">1 คาร์บ</div><div class="h2s">= คาร์โบไฮเดรต <b>15 กรัม</b></div></div></div>
 <div class="card" id="calcC"><div class="ch"><span class="no">=</span><h2>คำนวณคาร์บในมื้อ</h2></div>
 <div class="flds"><div class="fld"><label for="cS">🍚 ข้าว-แป้ง</label><div class="stp"><button type="button" data-s="cS" data-d="-0.5" aria-label="ลด">−</button><input id="cS" type="number" inputmode="decimal" value="2" step="0.5" min="0"><button type="button" data-s="cS" data-d="0.5" aria-label="เพิ่ม">+</button></div><small>ส่วน (ทัพพี)</small></div><div class="fld"><label for="cF">🍌 ผลไม้</label><div class="stp"><button type="button" data-s="cF" data-d="-0.5" aria-label="ลด">−</button><input id="cF" type="number" inputmode="decimal" value="1" step="0.5" min="0"><button type="button" data-s="cF" data-d="0.5" aria-label="เพิ่ม">+</button></div><small>ส่วน</small></div><div class="fld"><label for="cM">🥛 นม</label><div class="stp"><button type="button" data-s="cM" data-d="-0.5" aria-label="ลด">−</button><input id="cM" type="number" inputmode="decimal" value="0" step="0.5" min="0"><button type="button" data-s="cM" data-d="0.5" aria-label="เพิ่ม">+</button></div><small>กล่อง 240 มล.</small></div><div class="fld"><label for="cV">🥬 ผัก ข</label><div class="stp"><button type="button" data-s="cV" data-d="-0.5" aria-label="ลด">−</button><input id="cV" type="number" inputmode="decimal" value="1" step="0.5" min="0"><button type="button" data-s="cV" data-d="0.5" aria-label="เพิ่ม">+</button></div><small>ส่วน (½ ถ้วยสุก)</small></div><div class="fld"><label for="cL">🏷️ จากฉลาก</label><div class="stp"><button type="button" data-s="cL" data-d="-5" aria-label="ลด">−</button><input id="cL" type="number" inputmode="decimal" value="0" step="5" min="0"><button type="button" data-s="cL" data-d="5" aria-label="เพิ่ม">+</button></div><small>กรัมคาร์โบไฮเดรต</small></div></div>
@@ -312,10 +315,7 @@ body{background:light-dark(#e9f5f0,#08120f)}
 <div class="calc"><span class="bub">ข้าว 2</span>+<span class="bub">ผัก 0.3</span>+<span class="bub">ส้ม 1</span>=<span class="bub big2">3.3 คาร์บ</span></div></div>
 <div class="card"><div class="ch"><span class="no">4</span><h2>อ่านฉลากโภชนาการ</h2></div><div class="lab"><div class="lt">ข้อมูลโภชนาการ</div><div class="lr"><span>หนึ่งหน่วยบริโภค</span><span>1 ซอง</span></div><div class="lr hi"><span>คาร์โบไฮเดรตทั้งหมด</span><span>30 ก.</span></div><div class="lr"><span>น้ำตาล</span><span>8 ก.</span></div><div class="lr"><span>โปรตีน</span><span>3 ก.</span></div></div>
 <div class="calc"><span class="bub">30 ก.</span>÷<span class="bub">15</span>=<span class="bub big2">2 คาร์บ</span></div></div>
-</section>
-
-<section id="know" hidden>
-<div class="card hero2"><div class="h2e">💡</div><div><div class="h2t" style="font-size:34px">ความรู้</div><div class="h2s">โภชนาการน่ารู้ กดหัวข้อเพื่ออ่าน</div></div></div>
+</div></details>
 <details class="kc"><summary><span class="ke">📋</span><b>ตารางอาหารแลกเปลี่ยน</b></summary><div class="kb2">
 <h2>คุณค่าสารอาหารต่อ 1 ส่วน <small style="font:400 13px Sarabun;color:var(--mut)">(กรัม)</small></h2>
 <div id="refT" class="rgrid"></div>
@@ -426,7 +426,7 @@ $('clear').onclick=()=>{meal=[];mealR()};
 $('q').addEventListener('input',pick);
 
 /* tabs */
-const show=t=>{document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));['plan','energy','meal','how','know'].forEach(s=>$(s).hidden=s!==t);scrollTo(0,0)};
+const show=t=>{document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));['plan','energy','meal','know'].forEach(s=>$(s).hidden=s!==t);scrollTo(0,0)};
 document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('toMeal').onclick=()=>{meal=[];grp={};for(const g in planEx)grp[g]=r1(planEx[g]/3);$('mealT').innerHTML='<tr><td style="color:var(--mut)">ค่าเริ่มต้น = แผนต่อวัน ÷ 3 มื้อ ปรับได้ด้านล่าง</td></tr>';grpR();show('meal')};
 
