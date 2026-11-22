@@ -311,17 +311,14 @@ body{background:light-dark(#e9f5f0,#08120f)}
 
 <section id="eat" hidden>
 <div class="card eatsum" id="eatSum"></div>
-<div class="card"><div class="ch"><span class="no">1</span><h2>ถ่ายรูปอาหาร</h2></div>
-<div class="seg" id="eatMeal"><button type="button" data-m="เช้า" aria-pressed="true">เช้า</button><button type="button" data-m="กลางวัน" aria-pressed="false">กลางวัน</button><button type="button" data-m="เย็น" aria-pressed="false">เย็น</button><button type="button" data-m="ว่าง" aria-pressed="false">มื้อว่าง</button></div>
-<label class="snap" for="eatPhoto"><span id="snapIn">📷<b>แตะเพื่อถ่ายรูป / เลือกรูป</b><small>รูปช่วยจำว่ากินอะไร แล้วเลือกเมนูด้านล่าง</small></span><img id="snapImg" alt="" hidden></label>
-<input id="eatPhoto" type="file" accept="image/*" capture="environment" hidden></div>
-<div class="card"><div class="ch"><span class="no">2</span><h2>เลือกเมนูที่กิน</h2></div>
+<div hidden><label class="snap" for="eatPhoto"><span id="snapIn"></span><img id="snapImg" alt="" hidden></label><input id="eatPhoto" type="file" accept="image/*" hidden></div>
+<div class="card"><div class="ch"><span class="no">1</span><h2>เลือกเมนูที่กิน</h2></div><small style="color:var(--mut)">มื้อ</small><div class="seg" id="eatMeal"><button type="button" data-m="เช้า" aria-pressed="true">เช้า</button><button type="button" data-m="กลางวัน" aria-pressed="false">กลางวัน</button><button type="button" data-m="เย็น" aria-pressed="false">เย็น</button><button type="button" data-m="ว่าง" aria-pressed="false">มื้อว่าง</button></div><div style="height:10px"></div>
 <input id="eatQ" placeholder="ค้นหาเมนู เช่น กะเพรา ก๋วยเตี๋ยว บัวลอย">
 <div class="seg" id="eatPortion" style="margin-top:8px"><button type="button" data-p="0.5" aria-pressed="false">½</button><button type="button" data-p="1" aria-pressed="true">1</button><button type="button" data-p="1.5" aria-pressed="false">1½</button><button type="button" data-p="2" aria-pressed="false">2</button></div>
 <small style="color:var(--mut)">จำนวนที่กิน (เท่าของ 1 หน่วย)</small>
 <div id="eatList" class="elist"></div>
 <details class="own"><summary>➕ เพิ่มเมนูเอง</summary><div class="flds" style="margin-top:8px"><div><label for="ownN">ชื่อเมนู</label><input id="ownN"></div><div><label for="ownK">kcal</label><input id="ownK" type="number" inputmode="decimal"></div><div><label for="ownC">คาร์บ (ก.)</label><input id="ownC" type="number" inputmode="decimal"></div></div><button class="btn" id="ownAdd" style="margin-top:8px;width:100%">เพิ่ม</button></details></div>
-<div class="card"><div class="ch"><span class="no">3</span><h2>วันนี้กินอะไรไปแล้ว</h2></div><div id="eatLog"></div><button class="btn ghost" id="eatClear" style="margin-top:8px;width:100%">ล้างรายการวันนี้</button></div>
+<div class="card"><div class="ch"><span class="no">2</span><h2>วันนี้กินอะไรไปแล้ว</h2></div><div id="eatLog"></div><button class="btn ghost" id="eatClear" style="margin-top:8px;width:100%">ล้างรายการวันนี้</button></div>
 <p class="note">ค่าพลังงานและคาร์บเป็นค่าโดยประมาณ ขึ้นกับสูตรและปริมาณจริงของแต่ละร้าน</p>
 </section>
 <section id="know" hidden>
@@ -501,7 +498,7 @@ const eatR=()=>{const T=+$('kcal').value||0,k=eatLog.reduce((a,x)=>a+x.k,0),c=ea
  <div class="mac"><div><span>${left>=0?'เหลือได้อีก':'เกินเป้า'}</span><b style="color:${left>=0?'var(--teal)':'var(--acc)'}">${Math.abs(left)} <small>kcal</small></b></div><div><span>คาร์บที่กิน</span><b>${r1(c)} <small>ก. = ${r1(c/15)} คาร์บ</small></b></div><div><span>จำนวนรายการ</span><b>${eatLog.length} <small>รายการ</small></b></div></div>`;
  const ms=['เช้า','กลางวัน','เย็น','ว่าง'];
  $('eatLog').innerHTML=eatLog.length?ms.filter(m=>eatLog.some(x=>x.m===m)).map(m=>{const L=eatLog.map((x,i)=>[x,i]).filter(([x])=>x.m===m),mk=L.reduce((a,[x])=>a+x.k,0);
-  return `<div class="lg"><div class="lgh"><b>${m==='ว่าง'?'มื้อว่าง':'มื้อ'+m}</b><span>${mk} kcal</span></div>${L.map(([x,i])=>`<div class="lr2">${x.img?`<img src="${x.img}" alt="">`:`<span class="eic">${x.e}</span>`}<span class="ein"><b>${x.n}</b><small>× ${x.q} · คาร์บ ${x.c} ก.</small></span><b>${x.k}</b><button class="x" data-d="${i}" aria-label="ลบ">×</button></div>`).join('')}</div>`}).join(''):'<p class="note" style="text-align:center">ยังไม่มีรายการ ถ่ายรูปแล้วเลือกเมนูได้เลย</p>'};
+  return `<div class="lg"><div class="lgh"><b>${m==='ว่าง'?'มื้อว่าง':'มื้อ'+m}</b><span>${mk} kcal</span></div>${L.map(([x,i])=>`<div class="lr2">${x.img?`<img src="${x.img}" alt="">`:`<span class="eic">${x.e}</span>`}<span class="ein"><b>${x.n}</b><small>× ${x.q} · คาร์บ ${x.c} ก.</small></span><b>${x.k}</b><button class="x" data-d="${i}" aria-label="ลบ">×</button></div>`).join('')}</div>`}).join(''):'<p class="note" style="text-align:center">ยังไม่มีรายการ เลือกเมนูด้านบนได้เลย</p>'};
 $('kcal').addEventListener('input',()=>eatR());eatListR();eatR();
 plan();pick();mealR();
 }
