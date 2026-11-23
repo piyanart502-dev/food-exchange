@@ -533,7 +533,7 @@ $('clear').onclick=()=>{meal=[];mealR()};
 $('q').addEventListener('input',pick);
 
 /* tabs */
-const show=t=>{if(t==='eat')setTimeout(()=>eatR(),0);document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));['plan','eat','meal','know'].forEach(s=>$(s).hidden=s!==t);scrollTo(0,0)};
+const show=t=>{if(t==='eat'){setTimeout(()=>eatR(),0);try{warmTess()}catch(e){}}document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));['plan','eat','meal','know'].forEach(s=>$(s).hidden=s!==t);scrollTo(0,0)};
 document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('toMeal').onclick=()=>{meal=[];grp={};for(const g in planEx)grp[g]=r1(planEx[g]/3);$('mealT').innerHTML='<tr><td style="color:var(--mut)">ค่าเริ่มต้น = แผนต่อวัน ÷ 3 มื้อ ปรับได้ด้านล่าง</td></tr>';grpR();show('meal')};
 
@@ -615,7 +615,7 @@ const labR=()=>{const v=i=>+$(i).value||0,k=v('lbKcal'),c=v('lbCarb'),sg=v('lbSu
  $('labRes').innerHTML=`<div class="cc ccb" style="margin:10px 0"><b>${r1(c/15)}</b><span>คาร์บ / หน่วยบริโภค</span></div>
  <table class="plain lbt"><tr><th>สารอาหาร</th><th>ต่อหน่วย</th><th>% ต่อวัน</th><th>ระดับ</th></tr>${rows.map(([n,x,u,dv])=>{const pc=Math.round(x/dv*100),L=lvl(pc);return `<tr><td>${n}</td><td>${r1(x)} ${u}</td><td>${pc}%</td><td><span class="lvb" style="color:${L[1]};background:${L[2]}">${n==='โปรตีน'?(pc>=10?'ดี':'น้อย'):L[0]}</span></td></tr>`}).join('')}</table>
  <div class="ktip" style="margin-top:8px">${tips.join('<br>')}</div><p class="note">% ต่อวันเทียบกับพลังงานเป้าหมาย ${T} kcal และค่าอ้างอิงต่อวัน (คาร์บ 300 · น้ำตาล 65 · โปรตีน 50 · ไขมัน 65 ก. · โซเดียม 2,000 มก.) · ต่ำ &lt;5% · ปานกลาง 5–20% · สูง &gt;20%</p>`};
-LB.forEach(i=>$(i).addEventListener('input',labR));
+LB.forEach(i=>$(i).addEventListener('input',labR));$('labCard').addEventListener('pointerdown',()=>{try{warmTess()}catch(e){}},{once:true});
 segPick('lbQty','q',v=>lbQ=v);
 $('lbAdd').onclick=()=>{const v=i=>+$(i).value||0,m=lbQ==='all'?Math.max(1,v('lbServ')||1):1,n=$('lbName').value.trim()||'อาหารจากฉลาก';const save=eatP;eatP=m;eatAdd(n,'🏷️',v('lbKcal'),v('lbCarb'),v('lbPro'),v('lbFat'));eatP=save;lbStat('✓ บันทึก '+esc(n)+' แล้ว','var(--teal)')};
 const num=(t,re)=>{const m=t.match(re);return m?m[1].replace(',','.'):''};
@@ -627,14 +627,18 @@ const parseLab=t=>{t=t.replace(/[|]/g,' ').replace(/\s+/g,' ');const o={
  lbSugar:num(t,/(?:น้ำตาล|sugars?)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
  lbNa:num(t,/(?:โซเดียม|sodium)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
  lbServ:num(t,/(?:จำนวนหน่วยบริโภคต่อ\S*|servings per container)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/i)};return o};
-let tessP=null;const loadTess=()=>tessP||(tessP=new Promise((ok,no)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)}));
+let tessP=null,workP=null;const loadTess=()=>tessP||(tessP=new Promise((ok,no)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=()=>{tessP=null;no()};document.head.appendChild(sc)}));
+const getWorker=()=>workP||(workP=loadTess().then(()=>Tesseract.createWorker('tha+eng',1,{logger:m=>{if(lbBusy&&m.status==='recognizing text')lbStat('⏳ กำลังอ่าน '+Math.round(m.progress*100)+'%')}})).catch(e=>{workP=null;throw e}));
+let lbBusy=false;
+const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
+const warmTess=()=>{if(!workP)setTimeout(()=>getWorker().catch(()=>{}),800)};
 $('labPhoto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('labImg').src=url;$('labImg').hidden=false;$('labIn').hidden=true;
- lbStat('⏳ กำลังอ่านตัวเลขจากฉลาก… ครั้งแรกอาจใช้เวลา 20–40 วินาที');
- try{await loadTess();const r=await Tesseract.recognize(f,'tha+eng',{logger:m=>{if(m.status==='recognizing text')lbStat('⏳ กำลังอ่าน '+Math.round(m.progress*100)+'%')}});
+ lbStat(workP?'⏳ กำลังอ่านตัวเลขจากฉลาก…':'⏳ กำลังเตรียมตัวอ่าน (ครั้งแรกเท่านั้น)…');lbBusy=true;
+ try{const [w,img]=await Promise.all([getWorker(),prepImg(f)]);const r=await w.recognize(img);
   const o=parseLab(r.data.text||'');let n=0;for(const k in o)if(o[k]!==''){$(k).value=o[k];n++}labR();
   lbStat(n?`✓ อ่านได้ ${n} ค่า กรุณาตรวจทานให้ตรงฉลาก`:'อ่านตัวเลขไม่ได้ ลองถ่ายใหม่ให้ชัดขึ้น หรือกรอกเองด้านล่าง',n?'var(--teal)':'var(--acc)')}
  catch(err){lbStat('อ่านฉลากอัตโนมัติไม่ได้ในหน้านี้ กรอกตัวเลขเองด้านล่างได้เลย','var(--acc)')}
- e.target.value=''});
+ lbBusy=false;e.target.value=''});
 eatListR();eatR();
 plan();pick();mealR();
 }
