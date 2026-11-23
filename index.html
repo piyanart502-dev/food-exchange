@@ -356,7 +356,7 @@ body{background:light-dark(#e9f5f0,#08120f)}
 <div class="card" id="labCard"><div class="ch"><span class="no">🏷️</span><h2>สแกนฉลากโภชนาการ</h2></div>
 <label class="snap" for="labPhoto" style="min-height:110px"><span id="labIn">📷<b>ถ่ายรูปฉลากโภชนาการ</b><small>ถ่ายให้ตรง ชัด เห็นตัวเลขครบ</small></span><img id="labImg" alt="" hidden></label>
 <input id="labPhoto" type="file" accept="image/*" capture="environment" hidden>
-<div id="labStat" class="pmsg" style="margin-top:6px"></div>
+<div id="labStat" class="pmsg" style="margin-top:6px"></div><details id="ocrBox" class="own" hidden><summary>ดูข้อความที่แอปอ่านได้</summary><pre id="ocrRaw" style="white-space:pre-wrap;font-size:12px;background:var(--panel);padding:8px;border-radius:8px;max-height:200px;overflow:auto"></pre></details>
 <p class="note" style="margin:4px 0 8px">ตรวจหรือแก้ตัวเลขให้ตรงฉลาก (ค่าต่อ 1 หน่วยบริโภค)</p>
 <div class="lgrid"><div class="lf"><label for="lbKcal">พลังงาน</label><div class="lfi"><input id="lbKcal" type="number" inputmode="decimal" step="any"><span>kcal</span></div></div><div class="lf"><label for="lbCarb">คาร์โบไฮเดรต</label><div class="lfi"><input id="lbCarb" type="number" inputmode="decimal" step="any"><span>ก.</span></div></div><div class="lf"><label for="lbSugar">น้ำตาล</label><div class="lfi"><input id="lbSugar" type="number" inputmode="decimal" step="any"><span>ก.</span></div></div><div class="lf"><label for="lbPro">โปรตีน</label><div class="lfi"><input id="lbPro" type="number" inputmode="decimal" step="any"><span>ก.</span></div></div><div class="lf"><label for="lbFat">ไขมัน</label><div class="lfi"><input id="lbFat" type="number" inputmode="decimal" step="any"><span>ก.</span></div></div><div class="lf"><label for="lbNa">โซเดียม</label><div class="lfi"><input id="lbNa" type="number" inputmode="decimal" step="any"><span>มก.</span></div></div><div class="lf"><label for="lbServ">หน่วยบริโภคต่อซอง/ขวด</label><div class="lfi"><input id="lbServ" type="number" inputmode="decimal" step="any"><span></span></div></div></div>
 <div id="labRes"></div>
@@ -631,12 +631,15 @@ const parseLab=t=>{t=t.normalize('NFC').replace(/\u0E4D\u0E49\u0E32/g,'\u0E49\u0
 const OCR_LOCAL=/github\.io$/.test(location.hostname);let tessP=null,workP=null;const loadTess=()=>tessP||(tessP=new Promise((ok,no)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src=OCR_LOCAL?'ocr/tesseract.min.js':'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=()=>{tessP=null;no()};document.head.appendChild(sc)}));
 const getWorker=()=>workP||(workP=loadTess().then(()=>Tesseract.createWorker('tha',1,{...(OCR_LOCAL?{workerPath:'ocr/worker.min.js',corePath:'ocr/',langPath:'ocr/lang'}:{}),logger:m=>{if(lbBusy&&m.status==='recognizing text')lbStat('⏳ กำลังอ่าน '+Math.round(m.progress*100)+'%')}}).then(async w=>{await w.setParameters({tessedit_pageseg_mode:'6'});return w})).catch(e=>{workP=null;throw e}));
 let lbBusy=false;
-const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
+const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const mx=Math.max(im.width,im.height),k=mx<1000?1400/mx:Math.min(1,1600/mx),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
 const warmTess=()=>{if(!workP)setTimeout(()=>getWorker().catch(()=>{}),800)};
 $('labPhoto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
  lbStat(workP?'⏳ กำลังอ่านตัวเลขจากฉลาก…':'⏳ กำลังเตรียมตัวอ่าน (ครั้งแรกเท่านั้น)…');lbBusy=true;
  try{const [w,img]=await Promise.all([getWorker(),prepImg(f)]);const r=await w.recognize(img);
-  window.__ocr=r.data.text;const o=parseLab(r.data.text||'');let n=0;for(const k in o)if(o[k]!==''){$(k).value=o[k];n++}labR();
+  let txt=r.data.text||'',o=parseLab(txt),cnt=x=>Object.values(x).filter(v=>v!=='').length;
+  if(cnt(o)<4){lbStat('⏳ กำลังอ่านอีกรอบแบบละเอียด…');await w.setParameters({tessedit_pageseg_mode:'11'});const r2=await w.recognize(img);await w.setParameters({tessedit_pageseg_mode:'6'});const o2=parseLab(r2.data.text||'');for(const k in o)if(o[k]===''&&o2[k]!=='')o[k]=o2[k];txt+='\n---\n'+(r2.data.text||'')}
+  window.__ocr=txt;$('ocrRaw').textContent=txt.trim()||'(ไม่พบตัวอักษร)';$('ocrBox').hidden=false;
+  let n=0;for(const k in o)if(o[k]!==''){$(k).value=o[k];n++}labR();
   lbStat(n?`✓ อ่านได้ ${n} ค่า กรุณาตรวจทานให้ตรงฉลาก`:'อ่านตัวเลขไม่ได้ ลองถ่ายใหม่ให้ชัดขึ้น หรือกรอกเองด้านล่าง',n?'var(--teal)':'var(--acc)')}
  catch(err){lbStat('อ่านฉลากอัตโนมัติไม่ได้ในหน้านี้ กรอกตัวเลขเองด้านล่างได้เลย','var(--acc)')}
  lbBusy=false;e.target.value=''});
