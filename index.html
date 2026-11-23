@@ -633,7 +633,7 @@ const getWorker=()=>workP||(workP=loadTess().then(()=>Tesseract.createWorker('th
 let lbBusy=false;
 const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const mx=Math.max(im.width,im.height),k=mx<1000?1400/mx:Math.min(1,1600/mx),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
 const warmTess=()=>{if(!workP)setTimeout(()=>getWorker().catch(()=>{}),800)};
-$('labPhoto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
+$('labPhoto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;$('labImg').src=URL.createObjectURL(f);$('labImg').hidden=false;$('labIn').hidden=true;
  lbStat(workP?'⏳ กำลังอ่านตัวเลขจากฉลาก…':'⏳ กำลังเตรียมตัวอ่าน (ครั้งแรกเท่านั้น)…');lbBusy=true;
  try{const [w,img]=await Promise.all([getWorker(),prepImg(f)]);const r=await w.recognize(img);
   let txt=r.data.text||'',o=parseLab(txt),cnt=x=>Object.values(x).filter(v=>v!=='').length;
