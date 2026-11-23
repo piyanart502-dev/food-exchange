@@ -619,23 +619,24 @@ LB.forEach(i=>$(i).addEventListener('input',labR));$('labCard').addEventListener
 segPick('lbQty','q',v=>lbQ=v);
 $('lbAdd').onclick=()=>{const v=i=>+$(i).value||0,m=lbQ==='all'?Math.max(1,v('lbServ')||1):1,n=$('lbName').value.trim()||'อาหารจากฉลาก';const save=eatP;eatP=m;eatAdd(n,'🏷️',v('lbKcal'),v('lbCarb'),v('lbPro'),v('lbFat'));eatP=save;lbStat('✓ บันทึก '+esc(n)+' แล้ว','var(--teal)')};
 const num=(t,re)=>{const m=t.match(re);return m?m[1].replace(',','.'):''};
-const parseLab=t=>{t=t.replace(/[|]/g,' ').replace(/\s+/g,' ');const o={
- lbKcal:num(t,/(?:พลังงานทั้งหมด|พลังงาน|calories|energy)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/i),
- lbFat:num(t,/(?:ไขมันทั้งหมด|total fat|ไขมัน)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
+const first=(t,res)=>{for(const r of res){const v=num(t,r);if(v!=='')return v}return ''};
+const parseLab=t=>{t=t.normalize('NFC').replace(/\u0E4D\u0E49\u0E32/g,'\u0E49\u0E33').replace(/\u0E49\u0E4D\u0E32/g,'\u0E49\u0E33').replace(/\u0E4D\u0E32/g,'\u0E33').replace(/[|]/g,' ').replace(/\s+/g,' ');const o={
+ lbKcal:first(t,[/(?:พลังงานทั้งหมด|calories|energy)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/i,/พลังงาน(?!จาก)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/]),
+ lbFat:first(t,[/(?:ไข\S{0,2}มัน\s?ท|total fat)[^0-9]{0,14}(\d+(?:[.,]\d+)?)/i,/(?<!จาก)ไข\S{0,2}มัน(?!อิ่ม)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/]),
  lbPro:num(t,/(?:โปรตีน|protein)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
- lbCarb:num(t,/(?:คาร์โบไฮเดรตทั้งหมด|total carbohydrate|คาร์โบไฮเดรต|carbohydrate)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
- lbSugar:num(t,/(?:น้ำตาล|sugars?)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
+ lbCarb:first(t,[/(?:คาร์โบไฮเดรตทั้งหมด|total carbohydrate)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i,/(?:คาร์โบไฮเดรต|carbohydrate)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i]),
+ lbSugar:num(t,/(?:ตาล|sugars?)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
  lbNa:num(t,/(?:โซเดียม|sodium)[^0-9]{0,12}(\d+(?:[.,]\d+)?)/i),
- lbServ:num(t,/(?:จำนวนหน่วยบริโภคต่อ\S*|servings per container)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/i)};return o};
-let tessP=null,workP=null;const loadTess=()=>tessP||(tessP=new Promise((ok,no)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=()=>{tessP=null;no()};document.head.appendChild(sc)}));
-const getWorker=()=>workP||(workP=loadTess().then(()=>Tesseract.createWorker('tha+eng',1,{logger:m=>{if(lbBusy&&m.status==='recognizing text')lbStat('⏳ กำลังอ่าน '+Math.round(m.progress*100)+'%')}})).catch(e=>{workP=null;throw e}));
+ lbServ:num(t,/(?:หน่วยบริโภคต่อ\S*|servings per container)[^0-9]{0,15}(\d+(?:[.,]\d+)?)/i)};return o};
+const OCR_LOCAL=/github\.io$/.test(location.hostname);let tessP=null,workP=null;const loadTess=()=>tessP||(tessP=new Promise((ok,no)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src=OCR_LOCAL?'ocr/tesseract.min.js':'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=()=>{tessP=null;no()};document.head.appendChild(sc)}));
+const getWorker=()=>workP||(workP=loadTess().then(()=>Tesseract.createWorker('tha',1,{...(OCR_LOCAL?{workerPath:'ocr/worker.min.js',corePath:'ocr/',langPath:'ocr/lang'}:{}),logger:m=>{if(lbBusy&&m.status==='recognizing text')lbStat('⏳ กำลังอ่าน '+Math.round(m.progress*100)+'%')}}).then(async w=>{await w.setParameters({tessedit_pageseg_mode:'6'});return w})).catch(e=>{workP=null;throw e}));
 let lbBusy=false;
-const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
+const prepImg=f=>new Promise(ok=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.filter='grayscale(1) contrast(1.4)';x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b||f),'image/jpeg',.9)};im.onerror=()=>ok(f);im.src=URL.createObjectURL(f)});
 const warmTess=()=>{if(!workP)setTimeout(()=>getWorker().catch(()=>{}),800)};
 $('labPhoto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('labImg').src=url;$('labImg').hidden=false;$('labIn').hidden=true;
  lbStat(workP?'⏳ กำลังอ่านตัวเลขจากฉลาก…':'⏳ กำลังเตรียมตัวอ่าน (ครั้งแรกเท่านั้น)…');lbBusy=true;
  try{const [w,img]=await Promise.all([getWorker(),prepImg(f)]);const r=await w.recognize(img);
-  const o=parseLab(r.data.text||'');let n=0;for(const k in o)if(o[k]!==''){$(k).value=o[k];n++}labR();
+  window.__ocr=r.data.text;const o=parseLab(r.data.text||'');let n=0;for(const k in o)if(o[k]!==''){$(k).value=o[k];n++}labR();
   lbStat(n?`✓ อ่านได้ ${n} ค่า กรุณาตรวจทานให้ตรงฉลาก`:'อ่านตัวเลขไม่ได้ ลองถ่ายใหม่ให้ชัดขึ้น หรือกรอกเองด้านล่าง',n?'var(--teal)':'var(--acc)')}
  catch(err){lbStat('อ่านฉลากอัตโนมัติไม่ได้ในหน้านี้ กรอกตัวเลขเองด้านล่างได้เลย','var(--acc)')}
  lbBusy=false;e.target.value=''});
